@@ -42,9 +42,10 @@ retriever = vector_db.as_retriever()
 retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
 def streamlit_run():
+    
     st.title("Gen AI for JOB Search using RAG")
 
-    user_input = st.text_input("Write your query for ideal candidate.")
+    user_input = st.text_input("Write your query for job related search.")
     submit = st.button("Search")
 
     if submit:
