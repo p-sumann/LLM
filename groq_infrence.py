@@ -13,46 +13,43 @@ import time
 from dotenv import load_dotenv
 load_dotenv()
 
-groq_api_key=os.environ['GROQ_API_KEY']
+groq_api_key = os.environ['GROQ_API_KEY']
 
-load_dotenv()
+loader = WebBaseLoader('https://bitskraft.com/career/')
+docs = loader.load()
 
-laoder = WebBaseLoader('https://bitskraft.com/career/')
-docs = laoder.load()
-
-
-splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 200)
-
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 documents = splitter.split_documents(docs)
 
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-
 vector_db = FAISS.from_documents(documents, embedding=embeddings)
 
+llm = ChatGroq(temperature=0, model_name="mixtral-8x7b-32768", groq_api_key=groq_api_key)
 
-llm = chat = ChatGroq(temperature=0, model_name="mixtral-8x7b-32768", groq_api_key=groq_api_key)
-
-prompt=ChatPromptTemplate.from_template(
-"""
-Answer the questions based on the provided context only.
-Please provide the most accurate response based on the question
-<context>
-{context}
-<context>
-Questions:{input}
-
-""")
+prompt = ChatPromptTemplate.from_template(
+    """
+    Answer the questions based on the provided context only.
+    Please provide the most accurate response based on the question.
+    <context>
+    {context}
+    </context>
+    Questions: {input}
+    """
+)
 
 document_chain = create_stuff_documents_chain(llm, prompt)
 retriever = vector_db.as_retriever()
 retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
+def streamlit_run():
+    st.title("Gen AI for JOB Search using RAG")
 
-st.title("Gen AI for JOB Search using RAG")
+    user_input = st.text_input("Write your query for ideal candidate.")
+    submit = st.button("Search")
 
-user_input = st.text_input("Write your query for ideal candidate.")
-submit = st.button("Search Candidate")
-if submit:
-    result = retrieval_chain.invoke({"input": user_input})
-    st.write("Result: \n\n", result['answer'])
+    if submit:
+        result = retrieval_chain.invoke({"input": user_input})
+        st.write("Result: \n\n", result['answer'])
 
+if __name__ == "__main__":
+    streamlit_run()
