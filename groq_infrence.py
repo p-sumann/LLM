@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from langchain_groq import ChatGroq
 from langchain_community.document_loaders import WebBaseLoader
-from langchain.embeddings import OllamaEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
@@ -20,11 +20,12 @@ load_dotenv()
 laoder = WebBaseLoader('https://bitskraft.com/career/')
 docs = laoder.load()
 
+
 splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 200)
 
 documents = splitter.split_documents(docs)
 
-embeddings = OllamaEmbeddings()
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
 vector_db = FAISS.from_documents(documents, embedding=embeddings)
 
@@ -43,8 +44,15 @@ Questions:{input}
 """)
 
 document_chain = create_stuff_documents_chain(llm, prompt)
-retriever = st.session_state.vectors.as_retriever()
+retriever = vector_db.as_retriever()
 retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
 
-retrieval_chain.invoke({"input":prompt})
+st.title("Gen AI for JOB Search using RAG")
+
+user_input = st.text_input("Write your query for ideal candidate.")
+submit = st.button("Search Candidate")
+if submit:
+    result = retrieval_chain.invoke({"input": user_input})
+    st.write("Result: \n\n", result['answer'])
+
