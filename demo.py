@@ -16,7 +16,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
 
-
 def main():
 
     st.title("Chat With Your Document (RAG)")
