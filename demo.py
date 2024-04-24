@@ -7,6 +7,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.prompts.prompt import PromptTemplate
+from langchain_cohere import CohereEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_core.prompts import ChatPromptTemplate
@@ -42,8 +43,10 @@ def main():
         documents = text_splitter.split_documents(docs)
 
         # Create the vector database
+        # embed = CohereEmbeddings(model="embed-english-light-v3.0")
+        embed = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         vector_db = FAISS.from_documents(
-            documents=documents, embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001"))
+            documents=documents, embedding=embed)
 
         # Create the language model and prompt
         llm = GoogleGenerativeAI(model='gemini-pro')
@@ -51,6 +54,7 @@ def main():
             """
                 Answer the following questions based on the provided context.
                 Try to give lenghty answers.Do not give false answer
+                If data is in tabular formate then convert it into text form.
                 <context>
                 {context}
                 </context>
