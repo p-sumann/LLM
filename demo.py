@@ -11,8 +11,7 @@ from langchain_cohere import CohereEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import (ChatGoogleGenerativeAI, GoogleGenerativeAI,
-                                    GoogleGenerativeAIEmbeddings)
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
