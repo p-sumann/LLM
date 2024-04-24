@@ -25,8 +25,8 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000, chunk_overlap=200)
 documents = splitter.split_documents(docs)
 
-embeddings = CohereEmbeddings(model="embed-english-light-v3.0")
-# embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+# embeddings = CohereEmbeddings(model="embed-english-light-v3.0")
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 vector_db = FAISS.from_documents(documents, embedding=embeddings)
 
 
