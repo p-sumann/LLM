@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_cohere import CohereEmbeddings
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
@@ -14,37 +15,39 @@ from langchain_groq import ChatGroq
 
 load_dotenv()
 
-with st.spinner("Extracting Data From BitsKraft Career Page..."):
-    time.sleep(2)
-    groq_api_key = os.environ['GROQ_API_KEY']
 
-    loader = WebBaseLoader('https://bitskraft.com/career/')
-    docs = loader.load()
+groq_api_key = os.environ['GROQ_API_KEY']
 
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, chunk_overlap=200)
-    documents = splitter.split_documents(docs)
+loader = WebBaseLoader('https://bitskraft.com/career/')
+docs = loader.load()
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    vector_db = FAISS.from_documents(documents, embedding=embeddings)
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000, chunk_overlap=200)
+documents = splitter.split_documents(docs)
 
-    llm = ChatGroq(temperature=0, model_name="mixtral-8x7b-32768",
-                   groq_api_key=groq_api_key)
+embeddings = CohereEmbeddings(model="embed-english-light-v3.0")
+# embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+vector_db = FAISS.from_documents(documents, embedding=embeddings)
 
-    prompt = ChatPromptTemplate.from_template(
-        """
-        Answer the questions based on the provided context only.
-        Please provide the most accurate response based on the question.
-        <context>
-        {context}
-        </context>
-        Questions: {input}
-        """
-    )
 
-    document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = vector_db.as_retriever()
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
+llm = ChatGroq(temperature=0, model_name="mixtral-8x7b-32768",
+               groq_api_key=groq_api_key)
+
+
+prompt = ChatPromptTemplate.from_template(
+    """
+    Answer the questions based on the provided context only.
+    Please provide the most accurate response based on the question.
+    <context>
+    {context}
+    </context>
+    Questions: {input}
+    """
+)
+
+document_chain = create_stuff_documents_chain(llm, prompt)
+retriever = vector_db.as_retriever()
+retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
 
 def streamlit_run():
@@ -60,4 +63,6 @@ def streamlit_run():
 
 
 if __name__ == "__main__":
-    streamlit_run()
+    with st.spinner("Extracting Data From BitsKraft Career Page..."):
+        # time.sleep(2)
+        streamlit_run()
